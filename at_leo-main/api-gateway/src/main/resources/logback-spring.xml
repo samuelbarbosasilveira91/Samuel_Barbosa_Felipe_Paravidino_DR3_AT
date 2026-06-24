@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <springProperty scope="context" name="springAppName" source="spring.application.name"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [${springAppName},correlationId=%X{correlationId}] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="PAPERTRAIL" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+        <destination>syslog.collector.na-01.cloud.solarwinds.com:6514</destination>
+        <ssl />
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="ch.qos.logback.classic.PatternLayout">
+                <pattern>&lt;22&gt;1 %d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} localhost ${springAppName} - - [oV-xYR5-v4VNVqoyKbMz0YAdyBW_Y0VjLUlmVfMiAONRC346z2cxVG5F0L605Xu-bijFtwk@41058] [correlationId=%X{correlationId}] %msg%n</pattern>
+            </layout>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="PAPERTRAIL" />
+    </root>
+</configuration>
