@@ -1,12 +1,13 @@
 package com.marketplace.card.repository;
 
 import com.marketplace.card.model.Card;
-import org.springframework.data.mongodb.repository.ReactiveMongoRepository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
-import reactor.core.publisher.Flux;
+
+import java.util.List;
 
 @Repository
-public interface CardRepository extends ReactiveMongoRepository<Card, String> {
-    Flux<Card> findByGame(String game);
-    Flux<Card> findByNameContainingIgnoreCase(String name);
+public interface CardRepository extends MongoRepository<Card, String> {
+    List<Card> findByGame(String game);
+    List<Card> findByNameContainingIgnoreCase(String name);
 }

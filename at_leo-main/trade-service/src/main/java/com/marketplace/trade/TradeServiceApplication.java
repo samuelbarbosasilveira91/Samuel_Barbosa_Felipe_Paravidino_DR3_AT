@@ -1,6 +1,5 @@
 package com.marketplace.trade;
 
-import com.marketplace.trade.config.RestTemplateInterceptor;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
@@ -17,9 +16,7 @@ public class TradeServiceApplication {
 
     @Bean
     @LoadBalanced
-    public RestTemplate restTemplate(RestTemplateInterceptor interceptor) {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getInterceptors().add(interceptor.correlationInterceptor());
-        return restTemplate;
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 }

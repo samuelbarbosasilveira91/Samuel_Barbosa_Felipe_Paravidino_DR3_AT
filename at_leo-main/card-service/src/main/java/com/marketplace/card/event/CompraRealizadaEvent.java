@@ -10,5 +10,4 @@ import lombok.NoArgsConstructor;
 public class CompraRealizadaEvent {
     private String cardId;
     private Double price;
-    private String correlationId;
 }

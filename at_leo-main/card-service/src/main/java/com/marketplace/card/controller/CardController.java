@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cards")
@@ -18,12 +18,12 @@ public class CardController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<Card> createCard(@RequestBody Card card) {
+    public Card createCard(@RequestBody Card card) {
         return cardRepository.save(card);
     }
 
     @GetMapping
-    public Flux<Card> getCards(
+    public List<Card> getCards(
             @RequestParam(required = false) String game,
             @RequestParam(required = false) String name) {
         if (game != null) {
@@ -35,9 +35,9 @@ public class CardController {
     }
 
     @GetMapping("/{id}")
-    public Mono<ResponseEntity<Card>> getCardById(@PathVariable String id) {
+    public ResponseEntity<Card> getCardById(@PathVariable String id) {
         return cardRepository.findById(id)
                 .map(ResponseEntity::ok)
-                .defaultIfEmpty(ResponseEntity.notFound().build());
+                .orElse(ResponseEntity.notFound().build());
     }
 }

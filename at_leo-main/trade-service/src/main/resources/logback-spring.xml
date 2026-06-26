@@ -4,7 +4,7 @@
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [${springAppName},correlationId=%X{correlationId}] %logger{36} - %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [${springAppName},correlationId=%X{traceId:-},spanId=%X{spanId:-}] %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -13,7 +13,7 @@
         <ssl />
         <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
             <layout class="ch.qos.logback.classic.PatternLayout">
-                <pattern>&lt;22&gt;1 %d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} localhost ${springAppName} - - [oV-xYR5-v4VNVqoyKbMz0YAdyBW_Y0VjLUlmVfMiAONRC346z2cxVG5F0L605Xu-bijFtwk@41058] [correlationId=%X{correlationId}] %msg%n</pattern>
+                <pattern>&lt;22&gt;1 %d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} localhost ${springAppName} - - [oV-xYR5-v4VNVqoyKbMz0YAdyBW_Y0VjLUlmVfMiAONRC346z2cxVG5F0L605Xu-bijFtwk@41058] [correlationId=%X{traceId:-},spanId=%X{spanId:-}] %msg%n</pattern>
             </layout>
         </encoder>
     </appender>

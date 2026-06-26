@@ -1,13 +1,15 @@
 package com.marketplace.card.kafka;
 
 import com.marketplace.card.event.CompraRealizadaEvent;
+import com.marketplace.card.model.Card;
 import com.marketplace.card.repository.CardRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.dao.DataAccessException;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -18,32 +20,27 @@ public class PurchaseConsumer {
 
     @KafkaListener(topics = "trades.purchases", groupId = "card-service-group")
     public void consumePurchase(CompraRealizadaEvent event) {
-        String cid = event.getCorrelationId();
-        if (cid != null) {
-            MDC.put("correlationId", cid);
-        }
-
         log.info("Evento CompraRealizada recebido do Kafka: {}", event);
 
         try {
-            cardRepository.findById(event.getCardId())
-                    .flatMap(card -> {
-                        log.info("Atualizando preço médio de '{}'. Preço antigo: {}, Preço de venda: {}",
-                                card.getName(), card.getAveragePrice(), event.getPrice());
+            Optional<Card> optionalCard = cardRepository.findById(event.getCardId());
 
-                        double currentAvg = card.getAveragePrice() != null ? card.getAveragePrice() : 0.0;
-                        double newAvg = Math.round(((currentAvg + event.getPrice()) / 2.0) * 100.0) / 100.0;
-                        card.setAveragePrice(newAvg);
+            if (optionalCard.isPresent()) {
+                Card card = optionalCard.get();
+                log.info("Atualizando preço médio de '{}'. Preço antigo: {}, Preço de venda: {}",
+                        card.getName(), card.getAveragePrice(), event.getPrice());
 
-                        return cardRepository.save(card);
-                    })
-                    .doOnSuccess(saved -> log.info("Preço médio do card '{}' atualizado para: {}", saved.getName(), saved.getAveragePrice()))
-                    .doOnError(err -> log.error("Falha ao processar evento de compra: {}", err.getMessage()))
-                    .block();
+                double currentAvg = card.getAveragePrice() != null ? card.getAveragePrice() : 0.0;
+                double newAvg = Math.round(((currentAvg + event.getPrice()) / 2.0) * 100.0) / 100.0;
+                card.setAveragePrice(newAvg);
+
+                Card saved = cardRepository.save(card);
+                log.info("Preço médio do card '{}' atualizado para: {}", saved.getName(), saved.getAveragePrice());
+            } else {
+                log.warn("Card com ID '{}' não encontrado no banco de dados.", event.getCardId());
+            }
         } catch (DataAccessException | IllegalArgumentException e) {
             log.error(" Erro (Banco de Dados ou Argumento Inválido) ao consumir evento do Kafka para cardId '{}': {}", event.getCardId(), e.getMessage());
-        } finally {
-            MDC.remove("correlationId");
         }
     }
 }

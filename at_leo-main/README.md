@@ -6,8 +6,8 @@ Sistema de marketplace especializado na compra e venda de cartas colecionáveis 
 
 | Integrante | Microsserviço sob responsabilidade | Banco | Papéis Adicionais |
 |---|---|---|---|
-| **Samuel Barbosa Silveira** | `card-service` | MongoDB Reativo | Programação Reativa (WebFlux), Consumidor Kafka, Documentação, Actuator e RestTemplate Interceptor |
-| **Felipe Paravidino Silveira** | `trade-service` (+ infra: `discovery-server`, `api-gateway`) | PostgreSQL | API Gateway, Resiliência (Circuit Breaker), Produtor Kafka, Actuator, Logs de Correlação e Observabilidade (Papertrail) |
+| **Samuel Barbosa Silveira** | `card-service` | MongoDB | Consumidor Kafka, Documentação e Actuator |
+| **Felipe Paravidino Silveira** | `trade-service` (+ infra: `discovery-server`, `api-gateway`) | PostgreSQL | API Gateway (WebFlux), Resiliência (Circuit Breaker), Produtor Kafka, Actuator, OpenTelemetry (Micrometer Tracing) e Observabilidade |
 
 > Entrega em dupla. Cada integrante é responsável por pelo menos 1 microsserviço.
 
@@ -25,8 +25,8 @@ graph TD
         Eureka[Discovery Server Eureka - Porta 8761]
     end
     
-    Gateway -->|2. Roteia com X-Correlation-ID| CardService[card-service WebFlux - Porta 8081]
-    Gateway -->|2. Roteia com X-Correlation-ID| TradeService[trade-service MVC - Porta 8082]
+    Gateway -->|2. Roteia com TraceContext (OTel)| CardService[card-service MVC - Porta 8081]
+    Gateway -->|2. Roteia com TraceContext (OTel)| TradeService[trade-service MVC - Porta 8082]
     
     CardService -.->|Registro| Eureka
     TradeService -.->|Registro| Eureka
@@ -36,16 +36,16 @@ graph TD
     Kafka -.->|4. Consome e atualiza avgPrice| CardService
     
     subgraph Databases
-        MongoReactive[(MongoDB Reactive: card_db)]
+        Mongo[(MongoDB: card_db)]
         Postgres[(PostgreSQL: trade_db)]
     end
     
-    CardService --> MongoReactive
+    CardService --> Mongo
     TradeService --> Postgres
 ```
 
 - **Discovery Server (Eureka):** os serviços se registram e se descobrem dinamicamente.
-- **API Gateway:** ponto único de entrada; injeta o `X-Correlation-ID` e roteia as requisições.
+- **API Gateway:** ponto único de entrada; roteia as requisições repassando os headers W3C TraceContext para rastreabilidade (OpenTelemetry).
 - **Bancos separados por serviço:** cada microsserviço é dono dos seus dados.
 
 ## Microsserviços
@@ -72,13 +72,13 @@ O `card-service` usa **MongoDB** pois o catálogo de cartas precisa de flexibili
 
 ## Observabilidade
 
-- **Correlation ID:** Um ID único (`X-Correlation-ID`) é gerado no Gateway e injetado no MDC de logs de todos os serviços e nas mensagens do Kafka.
-- **Logs Estruturados:** Formato modificado para incluir `[correlationId=...]` em cada linha de log (Papertrail / Console).
+- **OpenTelemetry & Micrometer Tracing:** Rastreamento distribuído automático utilizando o padrão W3C TraceContext. Os IDs fluem invisivelmente pelas chamadas REST e eventos do Kafka.
+- **Logs Estruturados:** Formato modificado para incluir `[traceId=...,spanId=...]` em cada linha de log (Papertrail / Console).
 - **Métricas:** Actuator/Prometheus expostos nos serviços e coletados pelo Grafana local.
 
 ## Tecnologias
 
-Java 21 · Spring Boot 3.3.4 · Spring Cloud 2023.0.3 (Eureka, Gateway) · Spring WebFlux · Spring MVC · PostgreSQL · MongoDB · **Apache Kafka** · **Resilience4j (Circuit Breaker)** · **Actuator + Prometheus + Grafana + Papertrail** · Docker Compose · Maven.
+Java 21 · Spring Boot 3.3.4 · Spring Cloud 2023.0.3 (Eureka, Gateway) · Spring WebFlux · Spring MVC · PostgreSQL · MongoDB · **Apache Kafka** · **Resilience4j (Circuit Breaker)** · **OpenTelemetry (OTel)** · **Actuator + Prometheus + Grafana + Papertrail** · Docker Compose · Maven.
 
 ## Como executar
 
