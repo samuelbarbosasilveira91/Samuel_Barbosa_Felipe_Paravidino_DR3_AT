@@ -25,8 +25,8 @@ graph TD
         Eureka[Discovery Server Eureka - Porta 8761]
     end
     
-    Gateway -->|2. Roteia com TraceContext (OTel)| CardService[card-service MVC - Porta 8081]
-    Gateway -->|2. Roteia com TraceContext (OTel)| TradeService[trade-service MVC - Porta 8082]
+    Gateway -->|2. Roteia com TraceContext OTel| CardService[card-service MVC - Porta 8081]
+    Gateway -->|2. Roteia com TraceContext OTel| TradeService[trade-service MVC - Porta 8082]
     
     CardService -.->|Registro| Eureka
     TradeService -.->|Registro| Eureka
